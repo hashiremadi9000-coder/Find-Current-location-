@@ -1,0 +1,44 @@
+function getLocation() {
+    const output = document.getElementById("output");
+
+    if (!navigator.geolocation) {
+        output.innerHTML = "Geolocation is not supported by your browser.";
+        return;
+    }
+
+    output.innerHTML = "Fetching location... ⏳";
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        // Google Maps link
+        let mapsLink = `<a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">📍 View on Google Maps</a>`;
+
+        try {
+            // OpenStreetMap Nominatim API for reverse geocoding (free)
+            let response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            let data = await response.json();
+
+            let city = data.address.city || data.address.town || data.address.village || "Unknown city";
+            let country = data.address.country || "Unknown country";
+
+            output.innerHTML = `
+                <b>Latitude:</b> ${lat} <br>
+                <b>Longitude:</b> ${lon} <br>
+                <b>City:</b> ${city} <br>
+                <b>Country:</b> ${country} <br><br>
+                ${mapsLink}
+            `;
+        } catch (err) {
+            output.innerHTML = `
+                <b>Latitude:</b> ${lat} <br>
+                <b>Longitude:</b> ${lon} <br>
+                City & Country info not available <br><br>
+                ${mapsLink}
+            `;
+        }
+    }, () => {
+        output.innerHTML = "Permission denied ❌";
+    });
+}
